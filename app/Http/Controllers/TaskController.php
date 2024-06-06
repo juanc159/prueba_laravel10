@@ -13,9 +13,25 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return Task::all();
+        $query = Task::query();
+
+        if ($request->has('title')) {
+            $query->where('title', 'like', '%' . $request->input('title') . '%');
+        }
+
+        if ($request->has('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->has('due_date')) {
+            $query->where('due_date', $request->input('due_date'));
+        }
+
+        $tasks = $query->get();
+
+        return response()->json($tasks);
     }
 
 
@@ -31,7 +47,7 @@ class TaskController extends Controller
             return response()->json(["message" => "Registro creado con éxito", "data" => $task], 201);
         } catch (\Throwable $th) {
             DB::rollback();
-            return response()->json(["message" => $th->getMessage()], 204);
+            return response()->json(["message" => $th->getMessage(),"line" => $th->getLine()], 500);
         }
     }
 
